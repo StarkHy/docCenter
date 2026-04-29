@@ -51,10 +51,12 @@ Word 报告生成系统是一个基于模板的自动化文档生成平台。用
 | 文档引擎 | docxtpl | 0.16.7 | Word 模板渲染（基于 Jinja2） |
 | 文档处理 | python-docx | 1.1.2 | Word 文档创建和编辑 |
 | 图表生成 | matplotlib | 3.8.3 | 数据可视化图表生成 |
-| 数据库 | SQLite + aiosqlite | 2.0.25 | 异步 SQLite 驱动 |
+| 数据库 | PostgreSQL 16 | - | 异步驱动 asyncpg |
 | ORM | SQLAlchemy | 2.0.25 | 数据库 ORM 框架 |
+| 对象存储 | MinIO | latest | 文件（模板/图表/输出文档）存储 |
 | 数据验证 | Pydantic | 2.6.1 | 数据验证和序列化 |
 | HTTP 客户端 | requests | 2.31.0 | HTTP API 调用 |
+| 数据库驱动 | psycopg2-binary / pymysql / cx-Oracle | - | 多类型数据库数据源支持 |
 
 ### 前端技术栈
 
@@ -91,20 +93,21 @@ Word 报告生成系统是一个基于模板的自动化文档生成平台。用
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼
-        ┌────────────────────────┐
-        │      SQLite DB         │
-        │   doccenter.db         │
-        └────────────────────────┘
-        
-        ┌────────────────────────┐
-        │    文件存储目录         │
-        │  - templates/          │
-        │  - datasources/        │
-        │  - mappings/           │
-        │  - charts/             │
-        │  - output/             │
-        │  - history/            │
-        └────────────────────────┘
+         ┌────────────────────────┐     ┌────────────────────────┐
+         │     PostgreSQL 16      │     │     MinIO 对象存储      │
+         │   doccenter 数据库      │     │  - templates/          │
+         │                        │     │  - charts/             │
+         │                        │     │  - output/             │
+         │                        │     │  - history/            │
+         └────────────────────────┘     └────────────────────────┘
+         
+         ┌────────────────────────┐
+         │    外部数据源            │
+         │  - HTTP API            │
+         │  - Kingbase/PostgreSQL │
+         │  - MySQL/Oracle        │
+         │  - 静态 JSON/表单       │
+         └────────────────────────┘
 ```
 
 ---
@@ -151,7 +154,27 @@ git clone <repository-url>
 cd docCenter
 ```
 
-### 2. 后端安装
+### 2. 外部服务（Docker）
+
+```bash
+# PostgreSQL 16
+docker run -d --name postgresql \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=doccenter \
+  -p 5432:5432 \
+  postgres:16
+
+# MinIO 对象存储
+docker run -d --name minio-test \
+  -e MINIO_ROOT_USER=minioadmin \
+  -e MINIO_ROOT_PASSWORD=minioadmin \
+  -p 9000:9000 -p 9001:9001 \
+  -v minio_data:/data \
+  minio/minio server /data
+```
+
+### 3. 后端安装
 
 ```bash
 cd word-report-backend
@@ -178,7 +201,7 @@ python main.py
 
 服务启动成功后，访问 http://localhost:8000/api/health 验证。
 
-### 3. 前端安装
+### 4. 前端安装
 
 ```bash
 cd word-report-generator
@@ -202,7 +225,7 @@ npm run test:e2e
 
 前端服务启动后，访问 http://localhost:5173。
 
-### 4. 目录结构说明
+### 5. 目录结构说明
 
 ```
 docCenter/
@@ -214,11 +237,14 @@ docCenter/
 │   │   │   ├── auth.py          # 认证接口
 │   │   │   ├── templates.py     # 模板管理
 │   │   │   ├── datasources.py   # 数据源管理
-│   │   │   ├── mappings.py      # 映射配置
+│   │   │   ├── mappings.py      # 映射配置（含图表配置）
 │   │   │   ├── documents.py     # 文档生成
 │   │   │   ├── history.py       # 历史记录
-│   │   │   └── charts.py        # 图表生成
-│   │   └── services/            # 业务服务层
+│   │   │   ├── charts.py        # 图表生成
+│   │   │   └── databases.py     # 数据库数据源配置
+│   │   ├── services/            # 业务服务层
+│   │   ├── repositories/        # 数据访问层 (Repository 模式)
+│   │   └── migrations/          # 数据库迁移脚本
 │   ├── templates/               # 模板文件存储
 │   ├── datasources/             # 数据源配置存储
 │   ├── mappings/                # 映射配置存储
@@ -406,6 +432,43 @@ docCenter/
 **配置项**:
 - **自定义字段**: 动态添加字段名和值
 
+##### (4) 数据库查询
+
+从 Kingbase / PostgreSQL / MySQL / Oracle 数据库执行 SQL 查询获取数据。
+
+**配置项**:
+- **数据库类型**: Kingbase / PostgreSQL / MySQL / Oracle
+- **连接信息**: 主机、端口、数据库名、用户名、密码
+- **SQL 查询**: SELECT 语句（支持 `:param_name` 参数占位符）
+- **SQL 参数**: 定义参数名称、类型（string/integer/date）和默认值
+- **运行时参数**: 生成文档时可动态输入参数值
+
+**示例**:
+```json
+{
+  "type": "kingbase",
+  "config": {
+    "host": "192.168.1.100",
+    "port": "54321",
+    "database": "report_db",
+    "user": "reader",
+    "password": "******",
+    "sql": "SELECT month, revenue FROM sales WHERE year = :year",
+    "params": [
+      {"name": "year", "type": "integer", "default": "2024"}
+    ]
+  }
+}
+```
+
+**支持的数据库**:
+| 数据库 | 驱动 | 默认端口 |
+|--------|------|----------|
+| Kingbase (人大金仓) | psycopg2 (PostgreSQL 协议兼容) | 54321 |
+| PostgreSQL | psycopg2 | 5432 |
+| MySQL | pymysql | 3306 |
+| Oracle | cx-Oracle | 1521 |
+
 #### 测试数据源
 
 点击数据源的**测试**按钮，验证数据源连通性和数据格式。
@@ -478,15 +541,25 @@ docCenter/
 如果映射配置中包含图表，系统会自动生成并嵌入到文档中。
 
 **支持的图表类型**:
-- `bar`: 柱状图
-- `line`: 折线图
-- `pie`: 饼图
-- `combo`: 柱状图 + 折线图组合
-- `stack`: 堆叠柱状图
-- `donut`: 环形图（使用 pie 类型实现）
-- `scatter`: 散点图/气泡图
+| 类型 | 标识 | 说明 |
+|------|------|------|
+| 柱状图 | `bar` | 标准柱状对比图 |
+| 折线图 | `line` | 趋势分析折线图 |
+| 饼图 | `pie` | 占比分析 |
+| 环形图 | `donut` | 使用 pie 类型实现 |
+| 组合图 | `combo` | 柱状图 + 折线图组合 |
+| 堆叠柱状图 | `stack` | 多系列堆叠展示 |
+| 散点图 | `scatter` | 散点/气泡图 |
+| 沉降历时曲线 | `settlement_duration` | 专业工程图表 — 地面沉降 |
+| 水位历时曲线 | `waterlevel_duration` | 专业工程图表 — 地下水位 |
+| 沉降水位对比图 | `settlement_waterlevel_comparison` | 专业工程图表 — 对比分析 |
 
-**图表配置示例**:
+**两种数据模式**:
+
+##### 静态模式（传统方式）
+
+直接在映射配置中填写 x/y 轴数据：
+
 ```json
 {
   "id": "revenue_trend",
@@ -498,6 +571,26 @@ docCenter/
   "y_data": [18500, 19200, 20100]
 }
 ```
+
+##### 动态绑定模式（推荐）
+
+选择数据源字段作为 x/y 轴，数据在生成文档时自动从数据源获取：
+
+```json
+{
+  "id": "revenue_trend",
+  "type": "line",
+  "title": "收入趋势分析",
+  "x_label": "月份",
+  "y_label": "收入（万元）",
+  "unit": "万元",
+  "datasource_id": 1,
+  "x_field": "month",
+  "y_field": "revenue"
+}
+```
+
+**数据流**: 选择数据源字段 → 保存到映射 → 生成文档时自动提取数据 → 生成图表
 
 **模板中的图表占位符**:
 ```
@@ -1349,6 +1442,17 @@ cd word-report-generator && npm run dev
   - 图表自动嵌入
   - 批量删除功能
   - 中文字体支持
+
+- **v1.1.1** (2026-04): 架构改进
+  - 数据库规范化：显式外键约束、复合主键、关联表
+  - 服务层解耦：Repository 模式、Service 层重构
+  - 配置管理：分离硬编码配置
+  - 测试框架：pytest + pytest-asyncio，62 项测试
+  - 数据库数据源支持：Kingbase/PostgreSQL/MySQL/Oracle
+  - SQL 参数运行时动态输入
+  - 图表数据动态绑定（数据源字段映射）
+  - MinIO 对象存储集成
+  - 后端数据库迁移：SQLite → PostgreSQL 16
 
 ### B. 故障排查
 

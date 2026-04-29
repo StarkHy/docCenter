@@ -1,8 +1,8 @@
 # 当前项目状态
 
-**更新日期**: 2024-04-23  
+**更新日期**: 2026-04-27  
 **当前里程碑**: v1.1 架构改进 ✅ 已完成  
-**下一里程碑**: v2.0 生产就绪 📋 待规划
+**下一里程碑**: v1.2 功能增强 📋 待规划
 
 ---
 
@@ -10,96 +10,68 @@
 
 | 维度 | 状态 | 说明 |
 |------|------|------|
-| 功能完整性 | 🟢 良好 | 核心功能已实现 |
-| 代码质量 | 🟢 良好 | 服务层已解耦 ✅ |
-| 测试覆盖 | 🟡 中等 | 测试框架已搭建 ✅ |
-| 文档完整 | 🟢 良好 | GSD 文档齐全 |
-| 技术债务 | 🟢 低 | 所有 Phase 完成 ✅ |
+| 功能完整性 | 🟢 良好 | 核心功能 + 架构改进全部完成 |
+| 代码质量 | 🟢 良好 | 数据库规范化、服务解耦、Repository 模式 |
+| 测试覆盖 | 🟡 中等 | 62 项测试（Repository/Service/API/Model） |
+| 文档完整 | 🟢 良好 | GSD 文档、技术文档齐全 |
+| 技术债务 | 🟢 低 | v1.1 所有 Phase 完成 |
 
 ---
 
-## 🎯 当前活跃 Phase
+## 🎯 当前状态
 
 **v1.1 里程碑已完成** 🎉
 
----
+### 已完成 Phase
 
-## 📋 待启动 Phase (按优先级)
-
-### Phase 12: 服务层解耦 ✅ 已完成
-- **优先级**: P0
-- **工作量**: 2 天
-- **状态**: ✅ 已完成
-- **依赖**: Phase 11 ✅
-
-### Phase 13: 配置管理改进 ✅ 已完成
-- **优先级**: P1
-- **工作量**: 1 天
-- **状态**: ✅ 已完成
-- **依赖**: 无
-
-### Phase 14: 测试框架搭建 ✅ 已完成
-- **优先级**: P0
-- **工作量**: 3 天
-- **状态**: ✅ 已完成
-- **依赖**: Phase 11 ✅, Phase 12 ✅, Phase 13 ✅
+| Phase | 名称 | 状态 | 说明 |
+|-------|------|------|------|
+| 11 | 数据库规范化 | ✅ 完成 | 显式外键/复合主键/关联表 |
+| 12 | 服务层解耦 | ✅ 完成 | Repository 模式 + 单元测试 |
+| 13 | 配置管理 | ✅ 完成 | 环境变量 + Pydantic Settings |
+| 14 | 测试框架 | ✅ 完成 | pytest, 62 项测试通过 |
+| 15 | 数据库数据源 | ✅ 完成 | Kingbase/MySQL/Oracle/PostgreSQL 支持 |
+| 16 | 图表数据动态绑定 | ✅ 完成 | 数据源字段映射到图表 x/y 轴 |
 
 ---
 
-## 📈 本周进展
+## 📋 下一里程碑 (v1.2 功能增强)
+
+| Phase | 名称 | 优先级 | 工作量 | 状态 |
+|-------|------|--------|--------|------|
+| 21 | 批量操作功能 | P1 | 2 天 | 📋 待规划 |
+| 22 | 映射配置增强 | P2 | 2 天 | 📋 待规划 |
+| 23 | 历史记录审计 | P2 | 1 天 | 📋 待规划 |
+
+---
+
+## 📈 近期进展
 
 ### 已完成 ✅
-- ✅ GSD 项目文档初始化
-- ✅ Phase 11: 数据库模式规范化（6/6 任务完成）
-- ✅ Phase 12: 服务层解耦（6/6 任务完成）
-- ✅ Phase 13: 配置管理改进（5/5 任务完成）
-- ✅ Phase 14: 测试框架搭建（7/7 任务完成）
-  - 14.1: 配置 pytest 和测试工具 ✅
-  - 14.2: 创建测试数据库 fixture ✅
-  - 14.3: 编写模型层测试 ✅
-  - 14.4: 编写 API 层测试 ✅
-  - 14.7: 配置 CI 测试运行 ✅
+- ✅ Phase 11: 数据库规范化（3/3 任务完成）
+- ✅ Phase 12: 服务层解耦（2/2 任务完成）
+- ✅ Phase 14: 测试框架搭建（62 测试通过）
+- ✅ Phase 15: 数据库数据源支持（Kingbase/MySQL/Oracle/PostgreSQL）
+- ✅ Phase 16: 图表数据动态绑定（B06）
 
-### 进行中 🔄
-- 🔄 v1.1 里程碑完成 🎉
-
-### 阻塞中 ⛔
-- ⛔ 无
-
----
-
-## 🎉 v1.1 里程碑完成
-
----
-
-## 📅 下周计划
-
-### 计划启动
-- Phase 13: 配置管理改进（预计 1 天）
-- Phase 14: 测试框架搭建（预计 3 天）
-
-### 计划完成
-- 无（Phase 11 周期 4 天）
-
-### 关键会议
-- Phase 11 启动会（待定）
-- 技术方案评审会（待定）
+### 技术改进
+- ✅ 数据库迁移：SQLite → PostgreSQL 16
+- ✅ 对象存储：MinIO 集成
+- ✅ 图表系统：支持动态数据绑定和静态数据双模式
+- ✅ 专业工程图表：沉降历时曲线、水位历时曲线、对比图
 
 ---
 
 ## 📝 最近提交
 
 ```bash
-# 主仓库
-a999a51 feat: 更新子模块引用，包含批量删除和页面改进功能
-
-# 后端子模块
-93250ce feat: 增强文档生成服务和映射管理功能
-
-# 前端子模块
-3ca9c86 fix: 修复前端 API 请求配置
-aca8c1c feat: 改进映射配置和文档生成页面体验
-de3c2fb feat: 添加历史记录批量删除功能
+7bd4936 fix: restore chart dynamic data binding
+843f8f1 feat: implement B06 chart dynamic data binding
+e93aeac feat: add chart config UI and dynamic chart data roadmap
+645b3d6 feat: add B06 chart dynamic data binding to roadmap (P0)
+feb1eb7 feat: add help dialog and chart generation fixes
+f91a6f9 feat: v1.1 data source management improvements
+5e972b7 feat(mapping): template variables are now selectable
 ```
 
 ---
@@ -108,14 +80,10 @@ de3c2fb feat: 添加历史记录批量删除功能
 
 - [项目愿景](../PROJECT.md)
 - [路线图](../ROADMAP.md)
-- [Phase 11 计划](.planning/phases/phase-11-database-normalization.md)
-- [Phase 12 计划](.planning/phases/phase-12-service-decoupling.md)
-- [Phase 13 计划](.planning/phases/phase-13-config-management.md)
-- [Phase 14 计划](.planning/phases/phase-14-test-framework.md)
-- [GSD 使用指南](.planning/GSD-GUIDE.md)
-- [技术栈文档](.planning/intel/tech-stack.md)
-- [代码结构文档](.planning/intel/codebase-structure.md)
+- [技术栈文档](intel/tech-stack.md)
+- [代码结构文档](intel/codebase-structure.md)
+- [GSD 使用指南](GSD-GUIDE.md)
 
 ---
 
-**最后更新**: 2024-04-23
+**最后更新**: 2026-04-27
