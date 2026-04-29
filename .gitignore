@@ -1,0 +1,8 @@
+.DS_Store
+db_export.json
+venv/
+node_modules/
+__pycache__/
+*.pyc
+.vite/
+.env
