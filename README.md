@@ -1475,12 +1475,3 @@ sqlite3 word-report-backend/doccenter.db ".tables"
 curl http://localhost:8000/api/health
 ```
 
-### C. 联系方式
-
-如有问题或建议，请联系开发团队。
-
----
-
-**文档版本**: v1.1.0  
-**最后更新**: 2024-04-22  
-**维护者**: 华远科技集团 - 战略发展部
