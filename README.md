@@ -1,4 +1,92 @@
-# Word 报告生成系统 - 使用文档
+# Word 报告生成系统
+
+> 模板驱动的自动化 Word 报告生成平台。上传 `.docx` 模板、配置数据源与字段映射，
+> 自动生成含动态表格与图表的专业报告。
+
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Vue](https://img.shields.io/badge/Vue-3.4-42b883?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## 关于本项目的开发方式
+
+**本项目由 AI 编程代理（Codex / Claude Code）主导完成。**
+
+采用 GSD（Goal-Structured Development）方法论：把交付目标拆成 Milestone → Phase → Task 三级，
+每个 Phase 都有独立的计划文档（`PLAN`）与总结文档（`SUMMARY`），记录决策依据与执行结果。
+项目内共沉淀 **16 个 Phase** 的完整计划与总结（见 `.planning/phases/`）。
+
+| 环节 | 承担方 | 说明 |
+|------|--------|------|
+| 需求拆解与阶段拆分 | AI Agent | 从一句话需求生成 ROADMAP 与 Phase 计划 |
+| 技术选型 | **人工** | 架构决策由人拍板，Agent 提供候选方案与权衡分析 |
+| 编码实现 | AI Agent | 后端服务、数据模型、前端页面、迁移脚本 |
+| 测试编写与调试 | AI Agent | pytest 用例生成 + 失败用例定位修复 |
+| 文档维护 | AI Agent | README / API 文档 / SUMMARY 与代码同步更新 |
+| 结果验收 | **人工** | 业务正确性判断与最终交付确认 |
+
+### 这个方法带来的实际收益
+
+- **一个人完成了原本需要 2-3 人两个月的交付量**，项目当前约 5900 行后端代码 + 21 个前端源码文件
+- **决策全部留痕**：每个 Phase 的技术决策与理由都记录在 `SUMMARY` 文档中，可回溯
+- **架构演进有迹可循**：Phase 11（数据库规范化）→ 12（服务层解耦）→ 14（测试框架）
+  → 15（MinIO 集成）→ 16（图表动态绑定），每一步的迁移脚本与兼容方案均可查
+
+### 人工必须介入的地方
+
+这个项目也记录了 AI Agent 的实际能力边界，以下环节必须由人判断：
+
+- **架构选型**：是否引入 Repository 层、数据库迁移策略、MinIO vs 本地存储的取舍
+- **数据库规范化时机**：Phase 11 中 JSON 字段是否拆成关联表，涉及向后兼容判断
+- **图表动态绑定方案**：动态/静态双模式兼容策略是 Phase 16 的关键决策
+- **多数据库适配细节**：Oracle / Kingbase 驱动在各版本下的行为差异需实测确认
+
+> 结论：AI Agent 能承担实现层的绝大部分工作，但架构决策与业务正确性判断仍是人的职责。
+> 这套「人定方向、Agent 推进」的模式，是本项目能单人完成全栈交付的关键。
+
+---
+
+## 核心特性
+
+- **多数据源支持**：单个模板可从多个数据源获取数据，实现数据分离和复用
+- **智能字段映射**：支持模板变量与数据源字段的灵活映射，支持自动匹配
+- **图表可视化**：支持 7 种图表类型（柱状图、折线图、饼图、环形图、组合图、堆叠图、散点图）
+- **复杂表格**：支持合并单元格、背景色、边框样式等复杂表格格式
+- **长文本替换**：支持执行摘要、分析报告等长文本内容的动态替换
+- **批量操作**：支持模板、数据源、映射配置的批量删除
+- **历史记录**：完整的文档生成历史记录，支持重新生成和下载
+
+## 技术栈
+
+| 层次 | 技术 |
+|------|------|
+| 后端框架 | FastAPI 0.109.2 |
+| 文档引擎 | docxtpl 0.16.7 · python-docx 1.1.2 |
+| 图表生成 | matplotlib 3.8.3 |
+| 数据库 | PostgreSQL 16（开发/生产）· SQLite（测试） |
+| 数据库适配 | Kingbase · PostgreSQL · MySQL · Oracle |
+| ORM | SQLAlchemy 2.0.25 |
+| 对象存储 | MinIO |
+| 数据验证 | Pydantic 2.6.1 |
+| 前端 | Vue 3.4 · Vite 5.2 · Element Plus 2.6 · Pinia 2.1 |
+| E2E 测试 | Playwright 1.42 |
+
+## 项目结构
+
+```
+docCenter/
+├── .planning/                # GSD 计划库（intel + 各 Phase 的 PLAN/SUMMARY）
+├── word-report-backend/      # FastAPI 后端（routers -> services -> repositories -> models）
+├── word-report-generator/    # Vue 3 前端
+├── parameter_library/        # 参数库
+├── PROJECT.md                # 项目愿景与目标
+├── ROADMAP.md                # 里程碑与 Phase 规划
+└── test-cases.md             # 测试用例
+```
+
+---
 
 ## 目录
 
@@ -8,7 +96,7 @@
 4. [安装部署](#安装部署)
 5. [快速开始](#快速开始)
 6. [功能详解](#功能详解)
-7. [API 接口文档](#api 接口文档)
+7. [API 接口文档](#api-接口文档)
 8. [常见问题](#常见问题)
 9. [最佳实践](#最佳实践)
 
